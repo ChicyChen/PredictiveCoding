@@ -1,3 +1,4 @@
 dataset/kitti_raw/2011_09_26/
 *.hkl
 *.npy
+*.pt
