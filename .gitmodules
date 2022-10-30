@@ -1,0 +1,3 @@
+[submodule "prednet"]
+	path = prednet
+	url = https://github.com/coxlab/prednet.git
