@@ -1,5 +1,6 @@
 # moving minst contains 10000 videos, each have 20 frames, with image size 64 by 64
 # dataset: http://www.cs.toronto.edu/~nitish/unsupervised_video/
+# code reference: https://github.com/tychovdo/MovingMNIST
 
 from PIL import Image
 import numpy as np
