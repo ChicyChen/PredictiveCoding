@@ -83,24 +83,3 @@ class LSTMModel(nn.Module):
         # out.size() --> 100, 10
         return out
 
-# An auto-encoder model
-class FullyConnectedAutoencoder(nn.Module):
-    def __init__(self, input_dim, hidden_dim, output_dim):
-        super().__init__()
-        # Encoder: affine function
-        self.fc1 = nn.Linear(input_dim, hidden_dim)
-        # Decoder: affine function
-        self.fc2 = nn.Linear(hidden_dim, output_dim)
-
-    def forward(self, x):
-        # Encoder: affine function
-        out = self.fc1(x)
-        # Encoder: non-linear function
-        out = F.leaky_relu(out)
-
-        # Decoder: affine function
-        out = self.fc2(out)
-        # Decoder: non-linear function
-        out = torch.sigmoid(out)
-
-        return out
