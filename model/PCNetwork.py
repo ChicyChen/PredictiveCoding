@@ -18,7 +18,8 @@ class RNNModel(nn.Module):
         self.layer_dim = layer_dim
 
         # Building RNN
-        self.rnn = nn.RNN(input_dim, hidden_dim, layer_dim, batch_first=True, nonlinearity='relu')
+        self.rnn = nn.RNN(input_dim, hidden_dim, layer_dim,
+                          batch_first=True, nonlinearity='relu')
 
         # Readout layer
         self.fc = nn.Linear(hidden_dim, output_dim)
@@ -28,7 +29,8 @@ class RNNModel(nn.Module):
     def forward(self, x):
         # Initialize hidden state with zeros
         # (layer_dim, batch_size, hidden_dim)
-        h0 = torch.zeros(self.layer_dim, x.size(0), self.hidden_dim).requires_grad_()
+        h0 = torch.zeros(self.layer_dim, x.size(
+            0), self.hidden_dim).requires_grad_()
 
         # We need to detach the hidden state to prevent exploding/vanishing gradients
         # This is part of truncated backpropagation through time (BPTT)
@@ -36,14 +38,14 @@ class RNNModel(nn.Module):
 
         # Index hidden state of last time step
         # out.size() --> 100, 28, 10
-        # out[:, -1, :] --> 100, 10 --> just want last time step hidden states! 
+        # out[:, -1, :] --> 100, 10 --> just want last time step hidden states!
         if self.classification:
-            out = self.fc(out[:, -1, :]) 
+            out = self.fc(out[:, -1, :])
         # out.size() --> 100, 10
         return out
 
 
-# An LSTM model 
+# An LSTM model
 class LSTMModel(nn.Module):
     def __init__(self, input_dim, hidden_dim, layer_dim, output_dim, classification):
         super(LSTMModel, self).__init__()
@@ -65,10 +67,12 @@ class LSTMModel(nn.Module):
 
     def forward(self, x):
         # Initialize hidden state with zeros
-        h0 = torch.zeros(self.layer_dim, x.size(0), self.hidden_dim).requires_grad_()
+        h0 = torch.zeros(self.layer_dim, x.size(
+            0), self.hidden_dim).requires_grad_()
 
         # Initialize cell state
-        c0 = torch.zeros(self.layer_dim, x.size(0), self.hidden_dim).requires_grad_()
+        c0 = torch.zeros(self.layer_dim, x.size(
+            0), self.hidden_dim).requires_grad_()
 
         # 28 time steps
         # We need to detach as we are doing truncated backpropagation through time (BPTT)
@@ -77,9 +81,64 @@ class LSTMModel(nn.Module):
 
         # Index hidden state of last time step
         # out.size() --> 100, 28, 100
-        # out[:, -1, :] --> 100, 100 --> just want last time step hidden states! 
+        # out[:, -1, :] --> 100, 100 --> just want last time step hidden states!
         if self.classification:
-            out = self.fc(out[:, -1, :]) 
+            out = self.fc(out[:, -1, :])
         # out.size() --> 100, 10
         return out
 
+# reference: https://medium.com/dataseries/convolutional-autoencoder-in-pytorch-on-mnist-dataset-d65145c132ac
+
+
+class Encoder(nn.Module):
+
+    def __init__(self, encoded_space_dim):
+        super().__init__()
+
+        # Convolutional section
+        self.encoder_cnn = nn.Sequential(
+            nn.Conv2d(32, 64, 5, stride=2, padding=2),
+            nn.ReLU(True)
+        )
+
+        # Flatten layer
+        self.flatten = nn.Flatten(start_dim=1)
+# Linear section
+        self.encoder_lin = nn.Sequential(
+            nn.Linear(8 * 8 * 64, 128),
+            nn.ReLU(True),
+            nn.Linear(128, encoded_space_dim)
+        )
+
+    def forward(self, x):
+        x = self.encoder_cnn(x)
+        x = self.flatten(x)
+        x = self.encoder_lin(x)
+        return x
+
+
+class Decoder(nn.Module):
+
+    def __init__(self, encoded_space_dim):
+        super().__init__()
+        self.decoder_lin = nn.Sequential(
+            nn.Linear(encoded_space_dim, 128),
+            nn.ReLU(),
+            nn.Linear(128, 8 * 8 * 64),
+            nn.ReLU()
+        )
+
+        self.unflatten = nn.Unflatten(dim=1,
+                                      unflattened_size=(64, 8, 8))
+
+        self.decoder_conv = nn.Sequential(
+            nn.ConvTranspose2d(64, 32, 5,
+                               stride=2, padding=2, output_padding=1)
+        )
+
+    def forward(self, x):
+        x = self.decoder_lin(x)
+        x = self.unflatten(x)
+        x = self.decoder_conv(x)
+        x = torch.sigmoid(x)
+        return x
