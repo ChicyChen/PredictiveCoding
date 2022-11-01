@@ -142,3 +142,14 @@ class Decoder(nn.Module):
         x = self.decoder_conv(x)
         x = torch.sigmoid(x)
         return x
+
+
+class AutoEncoder(nn.Module):
+    def __init__(self, encoded_space_dim):
+        self.encoder = Encoder(encoded_space_dim)
+        self.decoder = Decoder(encoded_space_dim)
+
+    def forward(self, h):
+        z = self.encoder(h)
+        h_hat = self.decoder(z)
+        return z, h_hat
