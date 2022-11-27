@@ -1,4 +1,6 @@
 dataset/kitti_raw/2011_09_26/
+dataset/kitti_raw/wget-log
 *.hkl
 *.npy
 *.pt
+*.zip
